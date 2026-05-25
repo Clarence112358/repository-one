@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>猜猜我是谁 - 智能中国古代人物篇</title>
+    <style>
+        /* 全局盒模型优化，防止宽度溢出 */
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: #f4f4f9; 
+            display: flex; 
+            justify-content: center; 
+            padding: 15px 10px; /* 缩小了最外层手机端的边距 */
+            margin: 0;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 20px 15px; /* 手机端容器内边距缩小 */
+            border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 600px; 
+        }
+        
+        h1 { text-align: center; color: #333; font-size: 1.5rem; margin-top: 5px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 12px 15px; /* 稍微增加高度，方便手指点击 */
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            width: 100%; /* 默认按钮占满整行 */
+            margin-top: 10px;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 12px 10px; 
+            margin-top: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            font-size: 15px; 
+        }
+        
+        #chat-box { 
+            height: 350px; 
+            overflow-y: auto; 
+            background: #fafafa; 
+            border: 1px solid #eee; 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px;
+        }
+        
+        .msg { 
+            max-width: 85%; 
+            padding: 10px 14px; 
+            border-radius: 15px; 
+            word-wrap: break-word; /* 强制长单词换行 */
+            line-height: 1.4;
+        }
+        .msg.user { background: #d1e7dd; align-self: flex-end; border-bottom-right-radius: 2px;}
+        .msg.ai { background: #f8d7da; align-self: flex-start; border-bottom-left-radius: 2px;}
+        .msg.sys { background: #e2e3e5; align-self: center; font-size: 0.85em; color: #666; border-radius: 5px; text-align: center;}
+        
+        .hidden { display: none; }
+        
+        /* 桌面端默认是左右并排排列 */
+        .filter-row { display: flex; gap: 10px; margin-bottom: 10px;}
+        .filter-row > div { flex: 1; }
+        
+        .flex-row { display: flex; gap: 10px; align-items: center;}
+        .flex-row button { width: auto; margin-top: 0; white-space: nowrap;}
+        .flex-row input { margin-top: 0;}
+
+        /* 📱 针对手机屏幕的专门优化：小于 480px 时自动变为上下排列 */
+        @media (max-width: 480px) {
+            .filter-row { 
+                flex-direction: column; /* 身份和知名度上下排列 */
+                gap: 5px; 
+            }
+            .flex-row { 
+                flex-direction: column; /* 猜答案输入框和按钮上下排列 */
+                align-items: stretch;
+            }
+            .flex-row button { 
+                width: 100%; /* 按钮占满整行 */
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🤔 猜猜我是谁</h1>
+
+    <!-- 设置区域 -->
+    <div id="setup-section" class="section">
+        <h3>1. 设定人物</h3>
+        
+        <div style="background: #f9f9f9; padding: 12px; border-radius: 5px; margin-bottom: 15px;">
+            <p style="margin-top: 0; font-weight: bold; font-size: 14px; color: #555;">⚙️ AI 机选条件设置</p>
+            
+            <div class="filter-row">
+                <div>
+                    <label style="font-size: 14px;">身份：</label>
+                    <select id="identity-select">
+                        <option value="不限">不限 (随机)</option>
+                        <option value="皇帝">仅限皇帝</option>
+                        <option value="非皇帝">非皇帝(名臣/文人等)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 14px;">知名度：</label>
+                    <select id="popularity-select">
+                        <option value="不限">不限 (随机)</option>
+                        <option value="热门">热门 (妇孺皆知)</option>
+                        <option value="中等">中等 (历史课本学过)</option>
+                        <option value="冷门">冷门 (历史迷才知道)</option>
+                    </select>
+                </div>
+            </div>
+            <button id="random-btn" onclick="aiRandomPick()">🎲 AI 智能机选</button>
+        </div>
+
+        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
+        
+        <button style="background: #6c757d;" onclick="toggleCustomPick()">✍️ 自定义设定 (我要考别人)</button>
+        <div id="custom-pick-area" class="hidden">
+            <input type="text" id="custom-name" placeholder="输入你想设定的人物，如：李白">
+            <button onclick="customPick()">确定设定</button>
+        </div>
+    </div>
+
+    <!-- 游戏区域 -->
+    <div id="game-section" class="section hidden">
+        <h3 id="game-status" style="margin-top: 0;">游戏进行中...</h3>
+        
+        <div id="chat-box"></div>
+
+        <div>
+            <input type="text" id="question-input" placeholder="输入你的问题（如：他是唐朝人吗？）">
+            <button id="ask-btn" onclick="askQuestion()">提问</button>
+        </div>
+
+        <hr style="border: 0.5px solid #eee; margin: 15px 0;">
+
+        <!-- 猜答案区：电脑端并排，手机端会自动变成上下排 -->
+        <div class="flex-row">
+            <input type="text" id="guess-input" placeholder="我猜他是...(直接写名字)">
+            <button id="guess-btn" style="background: #007bff;" onclick="makeGuess()">猜测</button>
+        </div>
+        
+        <button style="background: #dc3545;" onclick="revealAnswer()">认输并看答案</button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚠️ 大模型 API 配置 (务必替换为你自己的)
+    // ==========================================
+    const API_URL = "https://api.deepseek.com/v1/chat/completions"; 
+    const API_KEY = "sk-46ff8d3a98844f36a5dbe41305dd47fa"; // 替换为你的真实API KEY
+    const MODEL_NAME = "deepseek-chat"; 
+    
+    let targetCharacter = "";
+    let isGameOver = false;
+
+    // AI 根据维度随机抽卡
+    async function aiRandomPick() {
+        const identity = document.getElementById('identity-select').value;
+        const popularity = document.getElementById('popularity-select').value;
+        const btn = document.getElementById('random-btn');
+        
+        btn.disabled = true;
+        btn.innerText = "正在让 AI 翻史书挑选人物...";
+
+        const pickPrompt = `你现在是一个历史游戏的发牌员。请在脑海中随机挑选一个【中国古代人物】。
+要求严格符合以下两个条件：
+1. 身份：${identity === '不限' ? '任意身份皆可' : identity}
+2. 知名度：${popularity === '不限' ? '任意知名度皆可' : popularity} （冷门指大众较少知道的，热门指妇孺皆知的）
+
+【极度重要】：请直接输出你挑选出的人物名字（例如：朱元璋、王安石），绝不能包含任何标点符号、前缀、后缀、朝代或解释性文字。`;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: MODEL_NAME,
+                    messages: [{ role: "user", content: pickPrompt }],
+                    temperature: 0.8
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            
+            let aiGeneratedName = data.choices[0].message.content.trim();
+            aiGeneratedName = aiGeneratedName.replace(/[。！!.,\s]/g, ''); 
+
+            if(!aiGeneratedName) throw new Error("AI未能成功返回名字");
+
+            targetCharacter = aiGeneratedName;
+            
+            startGame();
+            console.log(`[作弊模式👀] AI根据(身份:${identity}, 知名度:${popularity})选出的人物是:`, targetCharacter);
+
+        } catch (error) {
+            alert("召唤AI失败，请检查API配置或网络。");
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "🎲 AI 智能机选";
+        }
+    }
+
+    function toggleCustomPick() {
+        document.getElementById('custom-pick-area').classList.toggle('hidden');
+    }
+
+    function customPick() {
+        const name = document.getElementById('custom-name').value.trim();
+        if(!name) { alert("请输入人物名字！"); return; }
+        targetCharacter = name;
+        startGame();
+    }
+
+    function startGame() {
+        isGameOver = false;
+        document.getElementById('setup-section').classList.add('hidden');
+        document.getElementById('game-section').classList.remove('hidden');
+        document.getElementById('chat-box').innerHTML = "";
+        addMessage("sys", "游戏开始！AI已将人物藏在心中。你可以开始提问了。");
+    }
+
+    function addMessage(type, text) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${type}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        // 平滑滚动到底部
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+    }
+
+    async function askQuestion() {
+        if(isGameOver) return;
+        const input = document.getElementById('question-input');
+        const question = input.value.trim();
+        if(!question) return;
+
+        addMessage("user", "问: " + question);
+        input.value = "";
+        
+        const askBtn = document.getElementById('ask-btn');
+        askBtn.disabled = true;
+        askBtn.innerText = "思考中...";
+
+        try {
+            const answer = await callLLMForAnswer(question);
+            addMessage("ai", "答: " + answer);
+        } catch (error) {
+            addMessage("sys", "请求大模型失败。");
+            console.error(error);
+        }
+
+        askBtn.disabled = false;
+        askBtn.innerText = "提问";
+        // 手机端为了防止键盘弹起遮挡，提问完不自动focus输入框体验会更好
+        // input.focus(); 
+    }
+
+    async function callLLMForAnswer(question) {
+        const systemPrompt = `你现在是一个“猜人物”游戏的裁判。
+当前设定的中国古代人物是：【${targetCharacter}】。
+玩家会向你提出关于这个人物的问题。你需要根据历史事实进行判断。
+你的回答受到极严格的限制，你只能且必须输出以下三个词组中的一个，绝不能包含任何多余的标点符号或文字：
+- 如果玩家说的符合事实，输出：是
+- 如果玩家说的不符合事实，输出：不是
+- 如果玩家说的部分符合，或者历史上有争议，输出：是也不是`;
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: MODEL_NAME,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: question }
+                ],
+                temperature: 0.1
+            })
+        });
+
+        const data = await response.json();
+        let reply = data.choices[0].message.content.trim();
+        
+        reply = reply.replace(/[。！!.,]/g, ''); 
+        if(!["是", "不是", "是也不是"].includes(reply)) {
+            if(reply.includes("是也不是")) return "是也不是";
+            if(reply.includes("不是")) return "不是";
+            if(reply.includes("是")) return "是";
+            return "是也不是";
+        }
+
+        return reply;
+    }
+
+    function makeGuess() {
+        if(isGameOver) return;
+        const guessInput = document.getElementById('guess-input');
+        const guess = guessInput.value.trim();
+        if(!guess) return;
+
+        addMessage("user", "我猜他是：" + guess);
+        guessInput.value = "";
+
+        if(guess.includes(targetCharacter) || targetCharacter.includes(guess)) {
+            addMessage("sys", `🎉 恭喜你猜对了！正确答案就是【${targetCharacter}】！`);
+            endGame();
+        } else {
+            addMessage("ai", "不对哦，继续猜！");
+        }
+    }
+
+    function revealAnswer() {
+        if(isGameOver) return;
+        addMessage("sys", `游戏结束。正确答案是【${targetCharacter}】。`);
+        endGame();
+    }
+
+    function endGame() {
+        isGameOver = true;
+        document.getElementById('ask-btn').disabled = true;
+        document.getElementById('guess-btn').disabled = true;
+        document.getElementById('game-status').innerText = "游戏结束，请刷新页面重新开始。";
+    }
+
+    // 回车快捷键
+    document.getElementById("question-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // 防止手机端回车默认刷新页面
+            askQuestion();
+        }
+    });
+    document.getElementById("guess-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            makeGuess();
+        }
+    });
+</script>
+</body>
+</html>
