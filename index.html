@@ -13,13 +13,13 @@
             background-color: #f4f4f9; 
             display: flex; 
             justify-content: center; 
-            padding: 15px 10px; /* 缩小了最外层手机端的边距 */
+            padding: 15px 10px;
             margin: 0;
         }
         
         .container { 
             background: white; 
-            padding: 20px 15px; /* 手机端容器内边距缩小 */
+            padding: 20px 15px; 
             border-radius: 10px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             width: 100%; 
@@ -33,11 +33,11 @@
             background: #4CAF50; 
             color: white; 
             border: none; 
-            padding: 12px 15px; /* 稍微增加高度，方便手指点击 */
+            padding: 12px 15px; 
             border-radius: 5px; 
             cursor: pointer; 
             font-size: 15px; 
-            width: 100%; /* 默认按钮占满整行 */
+            width: 100%; 
             margin-top: 10px;
         }
         button:hover { background: #45a049; }
@@ -69,7 +69,7 @@
             max-width: 85%; 
             padding: 10px 14px; 
             border-radius: 15px; 
-            word-wrap: break-word; /* 强制长单词换行 */
+            word-wrap: break-word; 
             line-height: 1.4;
         }
         .msg.user { background: #d1e7dd; align-self: flex-end; border-bottom-right-radius: 2px;}
@@ -78,7 +78,6 @@
         
         .hidden { display: none; }
         
-        /* 桌面端默认是左右并排排列 */
         .filter-row { display: flex; gap: 10px; margin-bottom: 10px;}
         .filter-row > div { flex: 1; }
         
@@ -86,20 +85,10 @@
         .flex-row button { width: auto; margin-top: 0; white-space: nowrap;}
         .flex-row input { margin-top: 0;}
 
-        /* 📱 针对手机屏幕的专门优化：小于 480px 时自动变为上下排列 */
         @media (max-width: 480px) {
-            .filter-row { 
-                flex-direction: column; /* 身份和知名度上下排列 */
-                gap: 5px; 
-            }
-            .flex-row { 
-                flex-direction: column; /* 猜答案输入框和按钮上下排列 */
-                align-items: stretch;
-            }
-            .flex-row button { 
-                width: 100%; /* 按钮占满整行 */
-                margin-top: 5px;
-            }
+            .filter-row { flex-direction: column; gap: 5px; }
+            .flex-row { flex-direction: column; align-items: stretch; }
+            .flex-row button { width: 100%; margin-top: 5px; }
         }
     </style>
 </head>
@@ -107,6 +96,13 @@
 
 <div class="container">
     <h1>🤔 猜猜我是谁</h1>
+
+    <!-- API Key 输入区域 -->
+    <div id="api-key-section" class="section" style="background: #fff3cd; border-color: #ffeeba;">
+        <label style="font-weight: bold; color: #856404; font-size: 14px;">🔑 填入你的 DeepSeek API Key：</label>
+        <input type="text" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxx" style="border: 1px solid #ccc;">
+        <p style="font-size: 12px; color: #856404; margin-top: 8px; margin-bottom: 0;">*Key仅保存在你手机本地，不会上传。填好后即可开始游戏！</p>
+    </div>
 
     <!-- 设置区域 -->
     <div id="setup-section" class="section">
@@ -120,8 +116,8 @@
                     <label style="font-size: 14px;">身份：</label>
                     <select id="identity-select">
                         <option value="不限">不限 (随机)</option>
-                        <option value="皇帝">仅限皇帝</option>
-                        <option value="非皇帝">非皇帝(名臣/文人等)</option>
+                        <option value="皇帝、君主">仅限皇帝、君主</option>
+                        <option value="非皇帝、君主">非皇帝、君主(名臣/文人等)</option>
                     </select>
                 </div>
                 <div>
@@ -129,7 +125,7 @@
                     <select id="popularity-select">
                         <option value="不限">不限 (随机)</option>
                         <option value="热门">热门 (妇孺皆知)</option>
-                        <option value="中等">中等 (历史课本学过)</option>
+                        <option value="中等">中等 (课本学过)</option>
                         <option value="冷门">冷门 (历史迷才知道)</option>
                     </select>
                 </div>
@@ -159,7 +155,7 @@
 
         <hr style="border: 0.5px solid #eee; margin: 15px 0;">
 
-        <!-- 猜答案区：电脑端并排，手机端会自动变成上下排 -->
+        <!-- 猜答案区 -->
         <div class="flex-row">
             <input type="text" id="guess-input" placeholder="我猜他是...(直接写名字)">
             <button id="guess-btn" style="background: #007bff;" onclick="makeGuess()">猜测</button>
@@ -170,18 +166,34 @@
 </div>
 
 <script>
-    // ==========================================
-    // ⚠️ 大模型 API 配置 (务必替换为你自己的)
-    // ==========================================
     const API_URL = "https://api.deepseek.com/v1/chat/completions"; 
-    const API_KEY = "sk-46ff8d3a98844f36a5dbe41305dd47fa"; // 替换为你的真实API KEY
     const MODEL_NAME = "deepseek-reasoner"; 
     
     let targetCharacter = "";
     let isGameOver = false;
 
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedKey = localStorage.getItem("my_deepseek_key");
+        if(savedKey) {
+            document.getElementById("apiKeyInput").value = savedKey;
+        }
+    });
+
+    function getApiKey() {
+        const key = document.getElementById("apiKeyInput").value.trim();
+        if (!key) {
+            alert("请先在最上方填写你的 DeepSeek API Key！");
+            return null;
+        }
+        localStorage.setItem("my_deepseek_key", key); 
+        return key;
+    }
+
     // AI 根据维度随机抽卡
     async function aiRandomPick() {
+        const userKey = getApiKey();
+        if (!userKey) return; 
+
         const identity = document.getElementById('identity-select').value;
         const popularity = document.getElementById('popularity-select').value;
         const btn = document.getElementById('random-btn');
@@ -189,24 +201,57 @@
         btn.disabled = true;
         btn.innerText = "正在让 AI 翻史书挑选人物...";
 
-        const pickPrompt = `你现在是一个历史游戏的发牌员。请在脑海中随机挑选一个【中国古代人物】。
+        // 基础 Prompt
+        let pickPrompt = `你现在是一个历史游戏的发牌员。请在【中学语文、历史、政治课程】里出现过（不一定是课标考纲要求记住的）的中国古代人物中，挑选一位。
 要求严格符合以下两个条件：
 1. 身份：${identity === '不限' ? '任意身份皆可' : identity}
-2. 知名度：${popularity === '不限' ? '任意知名度皆可' : popularity} （冷门指大众较少知道的，热门指妇孺皆知的）
+2. 知名度：${popularity === '不限' ? '任意知名度皆可' : popularity} （冷门指大众较少知道的，热门指妇孺皆知的，中等指课本学过但平时不常提起的）\n\n`;
 
-【极度重要】：请直接输出你挑选出的人物名字（例如：朱元璋、王安石），绝不能包含任何标点符号、前缀、后缀、朝代或解释性文字。`;
+        // 核心修改：针对中等难度的分类抽卡逻辑
+        if (popularity === '中等') {
+            if (identity === '非皇帝、君主') {
+                pickPrompt += `⚠️【核心要求】：为了保证游戏的多样性，请你进行真正的随机！
+请你先在心里掷骰子，从以下6个类别中随机选定一个类别，然后再从该类别中挑选一位符合条件的人物：
+类别1：科学家（如张衡、沈括、祖冲之等）
+类别2：艺术家（如顾恺之、吴道子、王羲之等）
+类别3：文学家（如李白、苏轼、屈原、司马迁等）
+类别4：政治家（如商鞅、王安石、张居正等）
+类别5：思想家（如孔子、老子、董仲舒等）
+类别6：军事家（如卫青、岳飞、戚继光等）\n`;
+            } else if (identity === '不限') {
+                pickPrompt += `⚠️【核心要求】：为了保证游戏的多样性，请你进行真正的随机！
+请你先在心里掷骰子，从以下7个类别中随机选定一个类别，然后再从该类别中挑选一位符合条件的人物：
+类别1：科学家（如张衡、沈括、祖冲之等）
+类别2：艺术家（如顾恺之、吴道子、王羲之等）
+类别3：文学家（如李白、苏轼、屈原、司马迁等）
+类别4：政治家（如商鞅、王安石、张居正等）
+类别5：思想家（如孔子、老子、董仲舒等）
+类别6：军事家（如卫青、岳飞、戚继光等）
+类别7：皇帝、君主（如先秦的尧、舜、禹、商汤、周文王、齐桓公、晋文公，以及后世的汉宣帝、宋仁宗等）\n`;
+            } else if (identity === '皇帝、君主') {
+                pickPrompt += `⚠️【核心要求】：请在历朝历代的君主中随机挑选。注意不仅限于大一统王朝的皇帝，也请务必考虑先秦时期的君王（如尧、舜、禹、商汤、周文王、齐桓公、楚庄王等）。\n`;
+            }
+        } else {
+            // 非中等难度下，如果是选君主，也顺便提醒一下先秦人物
+            if (identity === '皇帝、君主' || identity === '不限') {
+                pickPrompt += `⚠️ 注意：如果挑选的是君主，不仅限于皇帝，也可以包含先秦时期的君王（如尧、舜、禹、商汤、周文王、齐桓公等）。\n`;
+            }
+        }
+
+        // 结尾严厉限制
+        pickPrompt += `\n【极度重要】：选好后，请直接输出该人物的姓名，绝对不要输出任何标点符号、前缀、后缀、朝代或其他解释性文字。`;
 
         try {
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${API_KEY}`
+                    "Authorization": `Bearer ${userKey}` 
                 },
                 body: JSON.stringify({
                     model: MODEL_NAME,
                     messages: [{ role: "user", content: pickPrompt }],
-                    temperature: 0.8
+                    temperature: 0.9 
                 })
             });
 
@@ -221,10 +266,10 @@
             targetCharacter = aiGeneratedName;
             
             startGame();
-            console.log(`[作弊模式👀] AI根据(身份:${identity}, 知名度:${popularity})选出的人物是:`, targetCharacter);
+            console.log(`[作弊模式👀] AI选出的人物是:`, targetCharacter);
 
         } catch (error) {
-            alert("召唤AI失败，请检查API配置或网络。");
+            alert("召唤AI失败，请检查API Key是否正确，或检查网络。");
             console.error(error);
         } finally {
             btn.disabled = false;
@@ -246,6 +291,7 @@
     function startGame() {
         isGameOver = false;
         document.getElementById('setup-section').classList.add('hidden');
+        document.getElementById('api-key-section').classList.add('hidden'); 
         document.getElementById('game-section').classList.remove('hidden');
         document.getElementById('chat-box').innerHTML = "";
         addMessage("sys", "游戏开始！AI已将人物藏在心中。你可以开始提问了。");
@@ -257,7 +303,6 @@
         msgDiv.className = `msg ${type}`;
         msgDiv.innerText = text;
         chatBox.appendChild(msgDiv);
-        // 平滑滚动到底部
         chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
     }
 
@@ -278,17 +323,18 @@
             const answer = await callLLMForAnswer(question);
             addMessage("ai", "答: " + answer);
         } catch (error) {
-            addMessage("sys", "请求大模型失败。");
+            addMessage("sys", "请求大模型失败，请检查网络或Key余额。");
             console.error(error);
         }
 
         askBtn.disabled = false;
         askBtn.innerText = "提问";
-        // 手机端为了防止键盘弹起遮挡，提问完不自动focus输入框体验会更好
-        // input.focus(); 
     }
 
     async function callLLMForAnswer(question) {
+        const userKey = getApiKey();
+        if (!userKey) throw new Error("未填写API Key");
+
         const systemPrompt = `你现在是一个“猜人物”游戏的裁判。
 当前设定的中国古代人物是：【${targetCharacter}】。
 玩家会向你提出关于这个人物的问题。你需要根据历史事实进行判断。
@@ -301,7 +347,7 @@
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`
+                "Authorization": `Bearer ${userKey}` 
             },
             body: JSON.stringify({
                 model: MODEL_NAME,
@@ -357,10 +403,9 @@
         document.getElementById('game-status').innerText = "游戏结束，请刷新页面重新开始。";
     }
 
-    // 回车快捷键
     document.getElementById("question-input").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
-            event.preventDefault(); // 防止手机端回车默认刷新页面
+            event.preventDefault(); 
             askQuestion();
         }
     });
