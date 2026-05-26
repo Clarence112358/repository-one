@@ -22,7 +22,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 680px;
         }
 
         h1 {
@@ -64,7 +64,7 @@
         }
 
         #chat-box {
-            height: 350px;
+            height: 360px;
             overflow-y: auto;
             background: #fafafa;
             border: 1px solid #eee;
@@ -77,11 +77,11 @@
         }
 
         .msg {
-            max-width: 85%;
+            max-width: 88%;
             padding: 10px 14px;
             border-radius: 15px;
             word-wrap: break-word;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .msg.user {
@@ -99,7 +99,7 @@
         .msg.sys {
             background: #e2e3e5;
             align-self: center;
-            font-size: 0.85em;
+            font-size: 0.88em;
             color: #666;
             border-radius: 5px;
             text-align: center;
@@ -129,6 +129,18 @@
 
         .flex-row input { margin-top: 0; }
 
+        .tip-box {
+            background: #f9f9f9;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 10px;
+        }
+
+        .tip-box strong { color: #333; }
+
         @media (max-width: 480px) {
             .filter-row { flex-direction: column; gap: 5px; }
             .flex-row { flex-direction: column; align-items: stretch; }
@@ -144,9 +156,7 @@
     <div id="api-key-section" class="section" style="background: #fff3cd; border-color: #ffeeba;">
         <label style="font-weight: bold; color: #856404; font-size: 14px;">🔑 填入你的 DeepSeek API Key：</label>
         <input type="text" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxx" style="border: 1px solid #ccc;">
-        <p style="font-size: 12px; color: #856404; margin-top: 8px; margin-bottom: 0;">
-            * Key 仅保存在你手机本地，不会上传。填好后即可开始游戏。
-        </p>
+        <p style="font-size: 12px; color: #856404; margin-top: 8px; margin-bottom: 0;">* Key 仅保存在你手机本地，不会上传。填好后即可开始游戏。</p>
     </div>
 
     <div id="setup-section" class="section">
@@ -159,7 +169,7 @@
                 <div>
                     <label style="font-size: 14px;">身份：</label>
                     <select id="identity-select">
-                        <option value="不限">不限</option>
+                        <option value="不限">不限 (随机)</option>
                         <option value="皇帝、君主">仅限皇帝、君主</option>
                         <option value="非皇帝、君主">非皇帝、君主(文臣武将等)</option>
                     </select>
@@ -167,13 +177,18 @@
                 <div>
                     <label style="font-size: 14px;">知名度：</label>
                     <select id="popularity-select">
-                        <option value="不限">不限</option>
-                        <option value="热门">热门</option>
-                        <option value="中等">中等</option>
-                        <option value="冷门">冷门</option>
+                        <option value="不限">不限 (随机)</option>
+                        <option value="热门">热门 (妇孺皆知)</option>
+                        <option value="中等">中等 (中小学课程常见，但非妇孺皆知)</option>
+                        <option value="冷门">冷门 (历史迷较可能知道)</option>
                         <option value="更冷门">骨灰级冷门</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>说明：</strong><br>
+                本页中“皇帝、君主”一律按广义理解：包括尧舜禹、夏商周的君王、春秋战国各国君主，以及僭越称帝、分裂势力称帝、谋反称帝、少数民族皇帝等。<br>                
             </div>
 
             <button id="random-btn" onclick="aiRandomPick()">🎲 AI 智能机选</button>
@@ -213,10 +228,11 @@
     const API_URL = "https://api.deepseek.com/v1/chat/completions";
     const MODEL_NAME = "deepseek-reasoner";
 
+    const EMPEROR_SCOPE_TEXT = "“皇帝、君主”包括尧舜禹、夏商周的君王、春秋战国各国君主，以及僭越称帝、分裂势力称帝、谋反称帝、少数民族皇帝等。";
+
     let targetCharacter = "";
+    let targetEraHint = "";
     let isGameOver = false;
-    let currentEraHint = "";
-    let currentSelectedLabel = "";
 
     window.addEventListener('DOMContentLoaded', () => {
         const savedKey = localStorage.getItem("my_deepseek_key");
@@ -235,23 +251,21 @@
         return key;
     }
 
-    function sanitizeName(text) {
-        return String(text || "")
-            .trim()
-            .replace(/[。！!.,，、；;：:\s]/g, "");
+    function normalizeQuestion(text) {
+        return text.trim();
     }
 
-    function sanitizeEraHint(text) {
-        return String(text || "")
-            .trim()
-            .replace(/[。！!?,，、；;：:“”"''（）()\[\]【】]/g, "")
-            .replace(/\s+/g, "");
+    function toggleCustomPick() {
+        document.getElementById('custom-pick-area').classList.toggle('hidden');
     }
 
-    function formatFallbackEra(label) {
-        if (!label) return "时代未定";
-        if (label.includes("非汉族")) return "非汉族政权时期";
-        return label;
+    function addMessage(type, text) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${type}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
     }
 
     function weightedPickLabel(allLabels) {
@@ -298,84 +312,101 @@
         };
     }
 
-    async function getEraHintForCharacter(userKey) {
-        const prompt = `
-你现在要为一个“中国古代人物猜谜游戏”生成开局时代提示。
-
-人物是：【${targetCharacter}】
-
-请你根据主流、常见、稳定的历史认知，为该人物给出一个最适合玩家理解的“时代短语”。
-
-要求如下：
-1. 只输出一个简短时代短语，不要输出姓名，不要输出解释。
-2. 可以使用这些形式：
-- 先秦
-- 秦汉
-- 三国
-- 隋唐
-- 两宋
-- 明清
-- 东汉末年
-- 西汉初年
-- 秦末汉初
-- 东汉末三国初
-- 元末明初
-- 北宋末南宋初
-- 春秋末战国初
-3. 如果人物明显处于朝代交替期，允许用“什么末什么初”的表达。
-4. 如果没有必要，不要故意写得太长。
-5. 优先输出普通玩家最容易理解的时代说法。
-6. 不要加标点，不要加括号，不要加说明。
-
-只输出时代短语本身。
-`;
-
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${userKey}`
-                },
-                body: JSON.stringify({
-                    model: MODEL_NAME,
-                    messages: [{ role: "user", content: prompt }],
-                    temperature: 0.2
-                })
-            });
-
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-            const data = await response.json();
-            let era = data.choices[0].message.content.trim();
-            era = sanitizeEraHint(era);
-
-            if (!era) return formatFallbackEra(currentSelectedLabel);
-            return era;
-        } catch (error) {
-            console.error("生成时代提示失败：", error);
-            return formatFallbackEra(currentSelectedLabel);
+    function pickDistinctRandom(arr, count) {
+        const copied = [...arr];
+        for (let i = copied.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copied[i], copied[j]] = [copied[j], copied[i]];
         }
+        return copied.slice(0, Math.min(count, copied.length));
     }
 
-    async function aiRandomPick() {
-        const userKey = getApiKey();
-        if (!userKey) return;
+    function stripCodeFence(text) {
+        return text
+            .replace(/^```json\s*/i, '')
+            .replace(/^```\s*/i, '')
+            .replace(/\s*```$/i, '')
+            .trim();
+    }
 
-        const identity = document.getElementById('identity-select').value;
-        const popularity = document.getElementById('popularity-select').value;
-        const btn = document.getElementById('random-btn');
+    function extractJsonObject(text) {
+        const cleaned = stripCodeFence(text);
+        try {
+            return JSON.parse(cleaned);
+        } catch (e) {}
 
-        btn.disabled = true;
-        btn.innerText = "正在让 AI 翻史书挑选人物...";
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+            const possible = cleaned.slice(start, end + 1);
+            try {
+                return JSON.parse(possible);
+            } catch (e) {}
+        }
+        return null;
+    }
 
-        let scopePrompt = "";
-        if (popularity === "热门" || popularity === "中等" || popularity === "不限") {
-            scopePrompt = "请优先从中学语文、历史、政治课程、常见教材、常见通俗历史内容里出现过的中国古代人物中筛选。";
-        } else {
-            scopePrompt = "请从中国古代正史、常见史传、可靠历史记载中筛选，不必局限于中学课本，但必须保证人物真实、定位明确、资料足够支撑后续问答。";
+    function cleanName(name) {
+        if (!name) return "";
+        return String(name)
+            .replace(/[《》〈〉【】\[\]（）()]/g, '')
+            .replace(/^[\-\d.\s、，,;；:：]+/, '')
+            .replace(/[。！!？?,，、；;:\s]+$/g, '')
+            .trim();
+    }
+
+    function sanitizeCandidateList(raw) {
+        let arr = [];
+
+        if (Array.isArray(raw)) {
+            arr = raw;
+        } else if (typeof raw === "string") {
+            arr = raw.split(/[\n,，、；;]+/);
         }
 
+        arr = arr
+            .map(item => typeof item === "string" ? item : (item && item.name ? item.name : ""))
+            .map(cleanName)
+            .filter(Boolean);
+
+        const unique = [];
+        const seen = new Set();
+
+        for (const name of arr) {
+            if (!seen.has(name)) {
+                seen.add(name);
+                unique.push(name);
+            }
+        }
+        return unique;
+    }
+
+    async function callDeepSeek(messages, temperature = 0) {
+        const userKey = getApiKey();
+        if (!userKey) throw new Error("未填写 API Key");
+
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${userKey}`
+            },
+            body: JSON.stringify({
+                model: MODEL_NAME,
+                messages,
+                temperature
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    }
+
+    function getAllEraLabels(identity, popularity) {
         let allLabels = [
             "先秦（含夏商周、春秋战国）",
             "秦汉",
@@ -395,19 +426,147 @@
             allLabels = allLabels.filter(label => !label.includes("两晋南北朝与五代十国"));
         }
 
-        const { selectedLabel, roll, pool } = weightedPickLabel(allLabels);
-        currentSelectedLabel = selectedLabel;
+        return allLabels;
+    }
 
-        let extraHint = "";
-        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("先秦")) {
-            extraHint += "\n【补充提示】如果符合条件，先秦君主不仅包括尧舜禹、商汤、周文王，也包括春秋战国各国君主。";
-        }
-        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("非汉族")) {
-            extraHint += "\n【补充提示】如果符合条件，非汉族政权或民族首领可包括单于、可汗、赞普、大汗等头衔人物。";
+    function getMediumRolePool(identity) {
+        const commonPool = [
+            "文学家（含史学家）",
+            "军事家",
+            "思想家",
+            "政治家（含外交家、改革家）",
+            "科学家（含医学、建筑、工匠、水利工程、数学）",
+            "艺术家（含书法、绘画、音乐）"
+        ];
+
+        if (identity === "非皇帝、君主") {
+            return commonPool;
         }
 
-        const pickPrompt = `
-你现在是一个中国古代历史人物猜谜游戏的“出题员”。你的任务不是自由联想，而是严格按条件筛选出一位真实、明确、适合出题的人物。
+        if (identity === "不限") {
+            return [
+                "皇帝、君主",
+                ...commonPool
+            ];
+        }
+
+        return [];
+    }
+
+    async function inferEraHint(characterName) {
+        const prompt = `
+你现在要为一个中国古代人物猜谜游戏，给出该人物的“时代提示”。
+
+人物是：【${characterName}】
+
+请严格遵守：
+1. 只输出一个非常短的时代提示，不要解释，不要加句号。
+2. 优先使用大众最容易理解、最常见的时代表述。
+3. 可以输出：
+   - 单一时代，如：战国、东汉、三国、盛唐、北宋、南宋、元朝、明朝、清朝
+   - 也可以输出跨时代短语，如：秦末汉初、东汉末三国初、隋末唐初、元末明初、明末清初
+4. 若人物跨时代，但最典型活动集中于某一阶段，应优先输出最常见的那个表述。
+5. 只输出时代提示本身，不得输出人物姓名，不得输出多余说明。
+`;
+
+        let reply = await callDeepSeek([{ role: "user", content: prompt }], 0);
+        reply = reply.replace(/[。！!？?]/g, '').trim();
+        return reply || "时代未识别";
+    }
+
+    async function generateCandidatesForMedium(selectedLabel, identity, popularity, drawnRoles) {
+        const roleText = drawnRoles.join("、");
+
+        const identityRule = identity === "非皇帝、君主"
+            ? `本轮身份限制为：非皇帝、君主。你给出的候选人绝不能是皇帝、君主。`
+            : `本轮总身份限制为：不限。但你给出的候选人仍必须来自本轮抽中的 3 个身份标签之一。只有当抽中的身份标签里包含“皇帝、君主”时，你才可以给出皇帝、君主人物。`;
+
+        const prompt = `
+你现在是一个中国古代历史人物猜谜游戏的“候选名单生成器”。
+
+你的任务不是直接决定最终人物，而是根据给定条件，生成一批真实、明确、适合出题的候选人物，供程序再随机抽取最终人物。
+
+请严格遵守以下规则：
+
+【一、当前条件】
+1. 历史时期标签：${selectedLabel}
+2. 难度：${popularity}
+3. 本轮抽中的 3 个身份标签：${roleText}
+4. ${identityRule}
+
+【二、难度解释】
+“中等”指：
+- 在中小学语文、政治、历史课程、课堂材料、试卷素材、常见通俗讲解中出现过；
+- 不要求一定写进正式课标或考纲，也不要求必须是高频考试人物；
+- 但应属于受过一般中小学教育的人较有机会接触过的人物；
+- 同时又不是“妇孺皆知、人人都能脱口而出”的顶级热门人物。
+
+【三、身份规则】
+1. 你给出的候选人，只需要满足这 3 个身份标签中的“任意一个”或“多个”即可。
+2. 不要求每个候选人同时满足全部 3 个身份标签。
+3. 不要硬凑“三标签全满足”的人物。
+4. 若某一标签在该时代能选的人极少，可以主要从另外标签中补足。
+5. 但所有候选人都必须至少落在这 3 个身份标签的范围内。
+
+【四、关于“皇帝、君主”的口径】
+若本轮抽中的身份标签包含“皇帝、君主”，则一律按广义理解：
+${EMPEROR_SCOPE_TEXT}
+
+【五、时期判断规则】
+1. 优先按人物最主要、最典型、最被大众认知的历史活动时期来判断。
+2. 允许纳入边界人物，但必须满足以下条件之一：
+   - 活跃于“上一个时代末期—本时代初期”；
+   - 或活跃于“本时代末期—下一个时代初期”；
+   - 并且他/她在【${selectedLabel}】这一标签对应历史阶段内，确实有重要活动、重要身份或重要影响。
+3. 如果只是出生或死亡碰到时代边界，但主要事迹并不属于【${selectedLabel}】，则不要列入。
+4. 若归属争议明显，优先不要列入。
+
+【六、候选人质量要求】
+1. 必须是真实存在的中国古代人物。
+2. 必须历史定位相对明确，适合“猜人物”游戏。
+3. 不得编造，不得使用史实极不清晰、真假存疑或资料过少的人物。
+4. 尽量给出 8 到 18 人。
+5. 如果符合条件的人确实不多，可以少于 8 人；宁可少，也不要乱凑。
+6. 不要输出解释，不要输出身份说明，不要输出朝代说明。
+
+【七、输出格式】
+你只能输出合法 JSON，对象格式如下：
+{
+  "candidates": ["人物1", "人物2", "人物3"]
+}
+
+除了 JSON，不得输出任何其他文字。
+`;
+
+        const raw = await callDeepSeek([{ role: "user", content: prompt }], 0.2);
+        const parsed = extractJsonObject(raw);
+
+        if (parsed && parsed.candidates) {
+            return sanitizeCandidateList(parsed.candidates);
+        }
+
+        return sanitizeCandidateList(raw);
+    }
+
+    async function pickSingleCharacterNormally(selectedLabel, identity, popularity) {
+        const scopePrompt = (popularity === "热门" || popularity === "中等" || popularity === "不限")
+            ? "请优先从中小学语文、政治、历史课程、课堂材料、试卷素材、常见教材、常见通俗历史内容里出现过的中国古代人物中筛选。"
+            : "请从中国古代正史、常见史传、可靠历史记载中筛选，不必局限于中小学材料，但必须保证人物真实、定位明确、资料足够支撑后续问答。";
+
+        const identityDesc = identity === '不限'
+            ? `任意身份皆可，但必须是历史上真实、明确、可考的人物。若涉及“皇帝、君主”，一律按广义理解：${EMPEROR_SCOPE_TEXT}`
+            : (identity === '皇帝、君主'
+                ? `仅限皇帝、君主，而且“皇帝、君主”一律按广义理解：${EMPEROR_SCOPE_TEXT}`
+                : '仅限非皇帝、君主人物，例如文臣、武将、思想家、文学家、科学家、艺术家等。');
+
+        const popularityDesc = popularity === '不限'
+            ? '不限，但仍应保证人物真实且有明确历史定位。'
+            : (popularity === '中等'
+                ? '中等：在中小学语文、政治、历史课程、课堂材料、试卷素材、常见通俗讲解中出现过，但并非妇孺皆知。'
+                : popularity);
+
+        const prompt = `
+你现在是一个中国古代历史人物猜谜游戏的“出题员”。你的任务不是自由联想，而是严格按条件筛选出 1 位真实、明确、适合出题的人物。
 
 请严格遵守以下规则：
 
@@ -415,8 +574,8 @@
 请从中国古代历史人物中，挑选 1 位最符合条件的人物，并且最终只输出这个人物的姓名，不要输出任何其他内容。
 
 【二、筛选条件】
-1. 身份要求：${identity === '不限' ? '任意身份皆可，但必须是历史上真实、明确、可考的人物。' : identity}
-2. 知名度要求：${popularity === '不限' ? '不限，但仍应保证人物真实且有明确历史定位。' : popularity}
+1. 身份要求：${identityDesc}
+2. 知名度要求：${popularityDesc}
 3. 历史时期标签：${selectedLabel}
 
 【三、时期判断规则】
@@ -427,12 +586,11 @@
    - 并且他/她在【${selectedLabel}】这一标签对应的历史阶段中，确实有重要活动、重要身份、重要影响。
 3. 如果只是出生或死亡碰巧擦到这个时代边界，但主要事迹并不属于【${selectedLabel}】，则不要选。
 4. 如果某人物是否属于该标签存在明显争议，优先不要选，改选归属更稳定、更公认的人物。
-5. 允许你把“上个时代末期到这个时代初期”的人物，以及“这个时代末期到下个时代末期”的人物视作可选对象，但前提仍然是：他/她在【${selectedLabel}】内必须有足够重要、足够代表性的活动。
-6. 允许你把“什么末什么初”这种跨时代人物纳入考虑，但不要为了跨时代而硬凑。
+5. 允许你把“上个时代末期到这个时代初期”的人物，以及“这个时代末期到下个时代初期”的人物，视作可选对象，但前提仍然是：他/她在【${selectedLabel}】内必须有足够重要、足够代表性的活动。
 
 【四、知名度解释】
 1. 热门：普通人普遍听过，常见于课本、影视、通俗历史内容。
-2. 中等：课本、常识或常见历史读物里出现过，但不是高频热门人物。
+2. 中等：在中小学语文、政治、历史课程、课堂材料、试卷素材、常见通俗讲解中出现过，不一定反复进入课标和考纲，但并非妇孺皆知。
 3. 冷门：一般大众不熟，但历史爱好者较可能知道。
 4. 更冷门：史料中真实存在，但普通人和一般历史爱好者都较少提及。
 5. 无论冷门程度如何，都不得编造人物，不得选择史实极不清晰、真假存疑或资料过少的人物。
@@ -446,54 +604,87 @@
 
 【六、范围补充】
 ${scopePrompt}
-${extraHint}
 
 【输出要求】
 最终只输出人物姓名本身，不得输出朝代、身份、解释、标点、括号、前缀或后缀。
 例如正确输出格式：李白
 `;
 
+        const raw = await callDeepSeek([{ role: "user", content: prompt }], 0.35);
+        return cleanName(raw);
+    }
+
+    async function aiRandomPick() {
+        const userKey = getApiKey();
+        if (!userKey) return;
+
+        const identity = document.getElementById('identity-select').value;
+        const popularity = document.getElementById('popularity-select').value;
+        const btn = document.getElementById('random-btn');
+
+        btn.disabled = true;
+        btn.innerText = "正在让 AI 翻史书挑选人物...";
+
         try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${userKey}`
-                },
-                body: JSON.stringify({
-                    model: MODEL_NAME,
-                    messages: [{ role: "user", content: pickPrompt }],
-                    temperature: 0.4
-                })
-            });
+            const allLabels = getAllEraLabels(identity, popularity);
+            const { selectedLabel, roll, pool } = weightedPickLabel(allLabels);
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            let chosenRoles = [];
+            let candidates = [];
 
-            const data = await response.json();
-            let aiGeneratedName = data.choices[0].message.content.trim();
-            aiGeneratedName = sanitizeName(aiGeneratedName);
+            const useMediumRoleMechanism =
+                popularity === "中等" &&
+                (identity === "非皇帝、君主" || identity === "不限");
 
-            if (!aiGeneratedName) throw new Error("AI未能成功返回名字");
+            if (useMediumRoleMechanism) {
+                const rolePool = getMediumRolePool(identity);
+                chosenRoles = pickDistinctRandom(rolePool, 3);
 
-            targetCharacter = aiGeneratedName;
-            await prepareAndStartGame(userKey);
+                candidates = await generateCandidatesForMedium(
+                    selectedLabel,
+                    identity,
+                    popularity,
+                    chosenRoles
+                );
 
-            console.log(`[开发日志] Roll 点: ${roll.toFixed(4)}`);
-            console.log(`[开发日志] 权重池:`, pool);
-            console.log(`[开发日志] 代码抽中的时代标签是: 【${selectedLabel}】`);
-            console.log(`[开发日志] AI最终交卷的人物是:`, targetCharacter);
+                if (!candidates.length) {
+                    throw new Error("AI 未能返回可用候选名单");
+                }
+
+                const candidateIndex = Math.floor(Math.random() * candidates.length);
+                targetCharacter = candidates[candidateIndex];
+
+                console.log("[开发日志] 中等难度特殊机制已启用");
+                console.log("[开发日志] Roll 点:", roll.toFixed(4));
+                console.log("[开发日志] 权重池:", pool);
+                console.log("[开发日志] 抽中的时代标签:", selectedLabel);
+                console.log("[开发日志] 抽中的 3 个身份标签:", chosenRoles);
+                console.log("[开发日志] AI 给出的候选名单:", candidates);
+                console.log("[开发日志] 代码最终抽中的人物:", targetCharacter);
+            } else {
+                targetCharacter = await pickSingleCharacterNormally(selectedLabel, identity, popularity);
+
+                if (!targetCharacter) {
+                    throw new Error("AI 未能成功返回名字");
+                }
+
+                console.log("[开发日志] 常规选人机制已启用");
+                console.log("[开发日志] Roll 点:", roll.toFixed(4));
+                console.log("[开发日志] 权重池:", pool);
+                console.log("[开发日志] 抽中的时代标签:", selectedLabel);
+                console.log("[开发日志] AI 最终交卷人物:", targetCharacter);
+            }
+
+            targetEraHint = await inferEraHint(targetCharacter);
+            startGame();
 
         } catch (error) {
-            alert("召唤AI失败，请检查 API Key 是否正确，或检查网络。");
+            alert("召唤 AI 失败，请检查 API Key、网络或稍后重试。");
             console.error(error);
         } finally {
             btn.disabled = false;
             btn.innerText = "🎲 AI 智能机选";
         }
-    }
-
-    function toggleCustomPick() {
-        document.getElementById('custom-pick-area').classList.toggle('hidden');
     }
 
     async function customPick() {
@@ -506,14 +697,23 @@ ${extraHint}
             return;
         }
 
-        targetCharacter = name;
-        currentSelectedLabel = "";
-        await prepareAndStartGame(userKey);
+        const btns = document.querySelectorAll('#custom-pick-area button');
+        btns.forEach(btn => btn.disabled = true);
+
+        try {
+            targetCharacter = name;
+            targetEraHint = await inferEraHint(targetCharacter);
+            startGame();
+        } catch (error) {
+            alert("获取时代提示失败，请检查网络或 API Key。");
+            console.error(error);
+        } finally {
+            btns.forEach(btn => btn.disabled = false);
+        }
     }
 
-    async function prepareAndStartGame(userKey) {
+    function startGame() {
         isGameOver = false;
-        currentEraHint = await getEraHintForCharacter(userKey);
 
         document.getElementById('setup-section').classList.add('hidden');
         document.getElementById('api-key-section').classList.add('hidden');
@@ -524,23 +724,14 @@ ${extraHint}
         document.getElementById('game-status').innerText = "游戏进行中...";
 
         addMessage("sys", "游戏开始！AI 已将人物藏在心中。");
-        addMessage("sys", `时代提示：${currentEraHint}`);
-    }
-
-    function addMessage(type, text) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${type}`;
-        msgDiv.innerText = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        addMessage("sys", `时代提示：${targetEraHint || "时代未识别"}`);
     }
 
     async function askQuestion() {
         if (isGameOver) return;
 
         const input = document.getElementById('question-input');
-        const question = input.value.trim();
+        const question = normalizeQuestion(input.value);
         if (!question) return;
 
         addMessage("user", "问: " + question);
@@ -563,14 +754,11 @@ ${extraHint}
     }
 
     async function callLLMForAnswer(question) {
-        const userKey = getApiKey();
-        if (!userKey) throw new Error("未填写 API Key");
-
         const systemPrompt = `
 你现在是一个中国古代人物猜谜游戏的“历史裁判”。
 
 当前被猜测的人物是：【${targetCharacter}】
-玩家开局已经收到的时代提示是：【${currentEraHint}】
+当前已公开给玩家的时代提示是：【${targetEraHint || "无"}】
 
 你的任务是：根据中国历史中的通行事实、主流常识、常见教材口径和较稳定的历史共识，判断玩家提出的话对于该人物是否成立。
 
@@ -586,7 +774,7 @@ ${extraHint}
 1. 以主流、稳定、常见的历史认知为优先，不要为了追求冷门细节而影响整体判断。
 2. 优先按“人物最主要、最常见、最公认的身份、时代、事迹”来判断。
 3. 不要进行无根据联想，不要为了显得聪明而过度推理。
-4. 如果玩家问法比较口语化，应按正常历史语境理解，不要过度抠字眼。
+4. 玩家已经知道一个时代提示，因此你的回答不得与这个时代提示明显自相矛盾，除非玩家的说法本身比该提示更具体，且两者并不冲突。
 
 【二、三个答案的严格定义】
 1. 输出“是”：
@@ -606,13 +794,11 @@ ${extraHint}
    - 问法本身过宽、过模糊、过口语化，无法直接简单判成完全对或完全错。
 
 【三、重点细化规则】
-
 1. 关于朝代问题
 - 优先按人物“主要活跃时期”和“通常被归入的历史阶段”判断。
 - 若人物横跨两个时代，且两边都有重要活动，则相关提问通常应回答“是也不是”。
 - 若人物只是出生或死亡碰到某朝代，但主要事迹不在该朝代，则不要轻易判“是”。
-- “某朝末年”“某朝初年”“某朝末某朝初”这类表述是允许的，应按常见历史语言理解。
-- 如果人物常被视为“东汉末三国初”“秦末汉初”“元末明初”这类跨时代人物，那么与这两个时代相关的问题要结合其主要活动阶段判断。
+- 若玩家问到“某末某初”这类边界说法，只要主流认知下成立，可直接答“是”。
 
 2. 关于身份问题
 - 若人物同时有多个重要身份，例如“政治家、文学家、将领、君主、改革者”等：
@@ -620,21 +806,20 @@ ${extraHint}
   - 如果该身份并非错误，但不够完整、只覆盖部分情况，可答“是也不是”；
   - 如果明显不符，则答“不是”。
 
-3. 关于评价类问题
+3. 关于“皇帝、君主”
+- 若问题涉及“皇帝、君主”，请按广义口径理解：
+${EMPEROR_SCOPE_TEXT}
+
+4. 关于评价类问题
 - 如“他算不算忠臣”“他是不是明君”“他是不是奸臣”这类价值判断：
   - 若历史评价高度统一，可直接判断；
   - 若历来争议较大，必须答“是也不是”。
 
-4. 关于宽泛描述
+5. 关于宽泛描述
 - 如“他很有名吗”“他厉害吗”“他算文人吗”：
   - 若主流常识下明显成立，可答“是”；
   - 若只能部分成立或标准不一，答“是也不是”；
   - 不要因为措辞不够学术就一律判错。
-
-5. 关于开局给出的时代提示
-- 玩家已经知道时代提示【${currentEraHint}】。
-- 这个时代提示是给玩家的公开线索，因此你在判断朝代相关问题时，应与这个线索保持兼容。
-- 但如果某问题比时代提示更细、更严谨，则仍需按历史事实判断，不可机械套用提示词字面。
 
 【四、禁止事项】
 1. 不要补充解释。
@@ -646,28 +831,11 @@ ${extraHint}
 现在开始裁判。记住：你只能输出“是”、“不是”或“是也不是”其中之一。
 `;
 
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${userKey}`
-            },
-            body: JSON.stringify({
-                model: MODEL_NAME,
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: question }
-                ],
-                temperature: 0
-            })
-        });
+        let reply = await callDeepSeek([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: question }
+        ], 0);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        let reply = data.choices[0].message.content.trim();
         reply = reply.replace(/[。！!.,，、；;：:\s]/g, '');
 
         if (!["是", "不是", "是也不是"].includes(reply)) {
