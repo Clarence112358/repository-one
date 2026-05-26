@@ -5,85 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>猜猜我是谁 - 智能中国古代人物篇</title>
     <style>
-        /* 全局盒模型优化，防止宽度溢出 */
         * { box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: #f4f4f9; 
-            display: flex; 
-            justify-content: center; 
+
+        body {
+            font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
             padding: 15px 10px;
             margin: 0;
         }
-        
-        .container { 
-            background: white; 
-            padding: 20px 15px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 600px; 
+
+        .container {
+            background: white;
+            padding: 20px 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 680px;
         }
-        
-        h1 { text-align: center; color: #333; font-size: 1.5rem; margin-top: 5px; }
-        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-        
-        button { 
-            background: #4CAF50; 
-            color: white; 
-            border: none; 
-            padding: 12px 15px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 15px; 
-            width: 100%; 
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 1.55rem;
+            margin-top: 5px;
+            margin-bottom: 18px;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            width: 100%;
             margin-top: 10px;
         }
+
         button:hover { background: #45a049; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        
-        input[type="text"], select { 
-            width: 100%; 
-            padding: 12px 10px; 
-            margin-top: 5px; 
-            border: 1px solid #ccc; 
-            border-radius: 5px; 
-            font-size: 15px; 
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
         }
-        
-        #chat-box { 
-            height: 350px; 
-            overflow-y: auto; 
-            background: #fafafa; 
-            border: 1px solid #eee; 
-            padding: 10px; 
-            border-radius: 5px; 
-            margin-bottom: 15px; 
-            display: flex; 
-            flex-direction: column; 
+
+        #chat-box {
+            height: 380px;
+            overflow-y: auto;
+            background: #fafafa;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
             gap: 10px;
         }
-        
-        .msg { 
-            max-width: 85%; 
-            padding: 10px 14px; 
-            border-radius: 15px; 
-            word-wrap: break-word; 
-            line-height: 1.4;
+
+        .msg {
+            max-width: 88%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            line-height: 1.45;
+            white-space: pre-wrap;
         }
-        .msg.user { background: #d1e7dd; align-self: flex-end; border-bottom-right-radius: 2px;}
-        .msg.ai { background: #f8d7da; align-self: flex-start; border-bottom-left-radius: 2px;}
-        .msg.sys { background: #e2e3e5; align-self: center; font-size: 0.85em; color: #666; border-radius: 5px; text-align: center;}
-        
+
+        .msg.user {
+            background: #d1e7dd;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg.ai {
+            background: #f8d7da;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg.sys {
+            background: #e2e3e5;
+            align-self: center;
+            font-size: 0.9em;
+            color: #555;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 96%;
+        }
+
         .hidden { display: none; }
-        
-        .filter-row { display: flex; gap: 10px; margin-bottom: 10px;}
-        .filter-row > div { flex: 1; }
-        
-        .flex-row { display: flex; gap: 10px; align-items: center;}
-        .flex-row button { width: auto; margin-top: 0; white-space: nowrap;}
-        .flex-row input { margin-top: 0;}
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-row > div {
+            flex: 1;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .flex-row button {
+            width: auto;
+            margin-top: 0;
+            white-space: nowrap;
+        }
+
+        .flex-row input {
+            margin-top: 0;
+        }
+
+        .tips {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.55;
+            margin-top: 8px;
+        }
+
+        .sub-box {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .divider {
+            border: 0.5px solid #eee;
+            margin: 20px 0;
+        }
 
         @media (max-width: 480px) {
             .filter-row { flex-direction: column; gap: 5px; }
@@ -97,56 +172,63 @@
 <div class="container">
     <h1>🤔 猜猜我是谁</h1>
 
-    <!-- API Key 输入区域 -->
     <div id="api-key-section" class="section" style="background: #fff3cd; border-color: #ffeeba;">
         <label style="font-weight: bold; color: #856404; font-size: 14px;">🔑 填入你的 DeepSeek API Key：</label>
         <input type="text" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxxxxx" style="border: 1px solid #ccc;">
-        <p style="font-size: 12px; color: #856404; margin-top: 8px; margin-bottom: 0;">*Key仅保存在你手机本地，不会上传。填好后即可开始游戏！</p>
+        <p class="tips" style="color: #856404; margin-bottom: 0;">
+            * Key 仅保存在你当前浏览器本地，不会上传到别的地方。填好后即可开始游戏。
+        </p>
     </div>
 
-    <!-- 设置区域 -->
     <div id="setup-section" class="section">
         <h3>1. 设定人物</h3>
-        
-        <div style="background: #f9f9f9; padding: 12px; border-radius: 5px; margin-bottom: 15px;">
+
+        <div class="sub-box">
             <p style="margin-top: 0; font-weight: bold; font-size: 14px; color: #555;">⚙️ AI 机选条件设置</p>
-            
+
             <div class="filter-row">
                 <div>
                     <label style="font-size: 14px;">身份：</label>
                     <select id="identity-select">
-                        <option value="不限">不限</option>
+                        <option value="不限">不限（随机）</option>
                         <option value="皇帝、君主">仅限皇帝、君主</option>
-                        <option value="非皇帝、君主">非皇帝、君主(文臣武将等)</option>
+                        <option value="非皇帝、君主">非皇帝、君主（文臣武将等）</option>
                     </select>
                 </div>
                 <div>
                     <label style="font-size: 14px;">知名度：</label>
                     <select id="popularity-select">
-                        <option value="不限">不限</option>
-                        <option value="热门">热门</option>
-                        <option value="中等">中等</option>
-                        <option value="冷门">冷门</option>
+                        <option value="不限">不限（随机）</option>
+                        <option value="热门">热门（妇孺皆知）</option>
+                        <option value="中等">中等（课本学过）</option>
+                        <option value="冷门">冷门（历史迷才知）</option>
                         <option value="更冷门">骨灰级冷门</option>
                     </select>
                 </div>
             </div>
+
             <button id="random-btn" onclick="aiRandomPick()">🎲 AI 智能机选</button>
+            <div class="tips">
+                机选时，AI 不只会选人名，还会顺便生成这个人物的固定档案，用来稳定后续问答判断。
+            </div>
         </div>
 
-        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
-        
-        <button style="background: #6c757d;" onclick="toggleCustomPick()">✍️ 自定义设定 (我要考别人)</button>
-        <div id="custom-pick-area" class="hidden">
+        <hr class="divider">
+
+        <button id="toggle-custom-btn" style="background: #6c757d;" onclick="toggleCustomPick()">✍️ 自定义设定（我要考别人）</button>
+
+        <div id="custom-pick-area" class="hidden" style="margin-top: 12px;">
             <input type="text" id="custom-name" placeholder="输入你想设定的人物，如：李白">
-            <button onclick="customPick()">确定设定</button>
+            <button id="custom-confirm-btn" onclick="customPick()">确定设定</button>
+            <div class="tips">
+                你手动输入人物后，系统也会先为这个人物生成固定档案，再开始游戏。
+            </div>
         </div>
     </div>
 
-    <!-- 游戏区域 -->
     <div id="game-section" class="section hidden">
-        <h3 id="game-status" style="margin-top: 0;">游戏进行中...</h3>
-        
+        <h3 id="game-status">游戏进行中...</h3>
+
         <div id="chat-box"></div>
 
         <div>
@@ -154,28 +236,56 @@
             <button id="ask-btn" onclick="askQuestion()">提问</button>
         </div>
 
-        <hr style="border: 0.5px solid #eee; margin: 15px 0;">
+        <hr class="divider" style="margin: 15px 0;">
 
-        <!-- 猜答案区 -->
         <div class="flex-row">
-            <input type="text" id="guess-input" placeholder="我猜他是...(直接写名字)">
+            <input type="text" id="guess-input" placeholder="我猜他是……（直接写名字）">
             <button id="guess-btn" style="background: #007bff;" onclick="makeGuess()">猜测</button>
         </div>
-        
+
         <button style="background: #dc3545;" onclick="revealAnswer()">认输并看答案</button>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://api.deepseek.com/v1/chat/completions"; 
-    const MODEL_NAME = "deepseek-reasoner"; 
-    
+    const API_URL = "https://api.deepseek.com/v1/chat/completions";
+    const MODEL_NAME = "deepseek-reasoner";
+
     let targetCharacter = "";
+    let targetProfile = null;
     let isGameOver = false;
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // 完全相同问题缓存，确保同题同答
+    let qaMemory = new Map();
+
+    // 最近问答记录，尽量保持口径一致
+    let qaHistory = [];
+
+    const CANONICAL_PERIODS = [
+        "先秦（含夏商周、春秋战国）",
+        "秦汉",
+        "三国",
+        "两晋南北朝与五代十国",
+        "隋唐",
+        "两宋",
+        "明清",
+        "非汉族"
+    ];
+
+    const dynastyQuestionMap = [
+        { keywords: ["先秦", "夏朝", "商朝", "周朝", "春秋", "战国"], label: "先秦（含夏商周、春秋战国）" },
+        { keywords: ["秦朝", "汉朝", "西汉", "东汉", "秦汉"], label: "秦汉" },
+        { keywords: ["三国", "曹魏", "蜀汉", "东吴"], label: "三国" },
+        { keywords: ["西晋", "东晋", "两晋", "南北朝", "五代十国"], label: "两晋南北朝与五代十国" },
+        { keywords: ["隋朝", "唐朝", "隋唐"], label: "隋唐" },
+        { keywords: ["宋朝", "北宋", "南宋", "两宋"], label: "两宋" },
+        { keywords: ["明朝", "清朝", "明清"], label: "明清" },
+        { keywords: ["匈奴", "突厥", "契丹", "女真", "蒙古", "党项", "吐蕃", "少数民族", "非汉族"], label: "非汉族" }
+    ];
+
+    window.addEventListener("DOMContentLoaded", () => {
         const savedKey = localStorage.getItem("my_deepseek_key");
-        if(savedKey) {
+        if (savedKey) {
             document.getElementById("apiKeyInput").value = savedKey;
         }
     });
@@ -186,105 +296,336 @@
             alert("请先在最上方填写你的 DeepSeek API Key！");
             return null;
         }
-        localStorage.setItem("my_deepseek_key", key); 
+        localStorage.setItem("my_deepseek_key", key);
         return key;
     }
 
-    // AI 根据维度随机抽卡
+    function addMessage(type, text) {
+        const chatBox = document.getElementById("chat-box");
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg ${type}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
+    }
+
+    function normalizeQuestion(text) {
+        return text
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/[？?！!。.,，、；;：:“”"'‘’（）()\[\]【】]/g, "")
+            .toLowerCase();
+    }
+
+    function normalizeName(text) {
+        return String(text || "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/[（(].*?[)）]/g, "");
+    }
+
+    function pushHistory(question, answer) {
+        qaHistory.push({ question, answer });
+        if (qaHistory.length > 12) {
+            qaHistory.shift();
+        }
+    }
+
+    function buildConsistencyContext() {
+        if (!qaHistory.length) return "暂无此前问答记录。";
+        return qaHistory
+            .map((item, index) => `${index + 1}. 问：${item.question} -> 答：${item.answer}`)
+            .join("\n");
+    }
+
+    function toggleCustomPick() {
+        document.getElementById("custom-pick-area").classList.toggle("hidden");
+    }
+
+    function startGame() {
+        isGameOver = false;
+        qaMemory = new Map();
+        qaHistory = [];
+
+        document.getElementById("setup-section").classList.add("hidden");
+        document.getElementById("api-key-section").classList.add("hidden");
+        document.getElementById("game-section").classList.remove("hidden");
+        document.getElementById("chat-box").innerHTML = "";
+        document.getElementById("ask-btn").disabled = false;
+        document.getElementById("guess-btn").disabled = false;
+        document.getElementById("game-status").innerText = "游戏进行中...";
+        addMessage("sys", "游戏开始！AI 已将人物藏在心中。你可以开始提问了。");
+    }
+
+    function endGame() {
+        isGameOver = true;
+        document.getElementById("ask-btn").disabled = true;
+        document.getElementById("guess-btn").disabled = true;
+        document.getElementById("game-status").innerText = "游戏结束，请刷新页面重新开始。";
+    }
+
+    function weightedPickLabel(allLabels) {
+        const preferredTags = ["三国", "隋唐", "两宋"];
+        const fixedProbEach = 0.20;
+
+        const preferred = allLabels.filter(tag => preferredTags.includes(tag));
+        const normal = allLabels.filter(tag => !preferredTags.includes(tag));
+
+        const pool = [];
+        preferred.forEach(tag => {
+            pool.push({ tag, weight: fixedProbEach });
+        });
+
+        const usedProb = preferred.length * fixedProbEach;
+        const remainingProb = 1 - usedProb;
+
+        if (normal.length > 0) {
+            const normalWeight = remainingProb / normal.length;
+            normal.forEach(tag => {
+                pool.push({ tag, weight: normalWeight });
+            });
+        }
+
+        let roll = Math.random();
+        let cursor = 0;
+
+        for (const item of pool) {
+            cursor += item.weight;
+            if (roll <= cursor + 0.0000001) {
+                return { selectedLabel: item.tag, roll, pool };
+            }
+        }
+
+        return {
+            selectedLabel: pool[pool.length - 1].tag,
+            roll,
+            pool
+        };
+    }
+
+    function tryParseJSON(raw) {
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            const match = raw.match(/```json\s*([\s\S]*?)\s*```/i) || raw.match(/```\s*([\s\S]*?)\s*```/i);
+            if (match) {
+                return JSON.parse(match[1]);
+            }
+            throw e;
+        }
+    }
+
+    function normalizePeriodLabel(value) {
+        const text = String(value || "").trim();
+        if (!text) return "";
+
+        if (CANONICAL_PERIODS.includes(text)) return text;
+
+        if (/先秦|夏|商|周|春秋|战国/.test(text)) return "先秦（含夏商周、春秋战国）";
+        if (/秦汉|秦朝|汉朝|西汉|东汉/.test(text)) return "秦汉";
+        if (/三国|曹魏|蜀汉|东吴/.test(text)) return "三国";
+        if (/两晋|西晋|东晋|南北朝|五代十国/.test(text)) return "两晋南北朝与五代十国";
+        if (/隋唐|隋朝|唐朝/.test(text)) return "隋唐";
+        if (/两宋|宋朝|北宋|南宋/.test(text)) return "两宋";
+        if (/明清|明朝|清朝/.test(text)) return "明清";
+        if (/非汉族|匈奴|突厥|契丹|女真|蒙古|党项|吐蕃|少数民族/.test(text)) return "非汉族";
+
+        return text;
+    }
+
+    function normalizeEthnicityBucket(value) {
+        const text = String(value || "").trim();
+        if (!text) return "未知";
+        if (/非汉族|匈奴|突厥|契丹|女真|蒙古|党项|吐蕃|少数民族/.test(text)) {
+            return "非汉族政权人物";
+        }
+        if (/汉族/.test(text)) {
+            return "汉族政权人物";
+        }
+        return text;
+    }
+
+    function normalizeMajorIdentities(list) {
+        if (!Array.isArray(list)) return [];
+        const cleaned = list
+            .map(x => String(x).trim())
+            .filter(Boolean);
+
+        return [...new Set(cleaned)];
+    }
+
+    function normalizeProfile(profile) {
+        const safe = {
+            name: normalizeName(profile?.name || ""),
+            primary_period: normalizePeriodLabel(profile?.primary_period || ""),
+            acceptable_periods: Array.isArray(profile?.acceptable_periods)
+                ? profile.acceptable_periods
+                    .map(x => normalizePeriodLabel(x))
+                    .filter(Boolean)
+                : [],
+            is_ruler: Boolean(profile?.is_ruler),
+            major_identities: normalizeMajorIdentities(profile?.major_identities),
+            ethnicity_bucket: normalizeEthnicityBucket(profile?.ethnicity_bucket),
+            birth_year: typeof profile?.birth_year === "number" ? profile.birth_year : null,
+            death_year: typeof profile?.death_year === "number" ? profile.death_year : null,
+            one_line_summary: String(profile?.one_line_summary || "").trim()
+        };
+
+        if (safe.primary_period && !safe.acceptable_periods.includes(safe.primary_period)) {
+            safe.acceptable_periods.unshift(safe.primary_period);
+        }
+
+        safe.acceptable_periods = [...new Set(safe.acceptable_periods)];
+
+        return safe;
+    }
+
+    async function fetchCharacterProfile(promptText, apiKey, temperature = 0.4) {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: MODEL_NAME,
+                messages: [{ role: "user", content: promptText }],
+                temperature
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const raw = data.choices[0].message.content.trim();
+        const parsed = tryParseJSON(raw);
+        const profile = normalizeProfile(parsed);
+
+        if (!profile.name || !profile.primary_period || !profile.acceptable_periods.length) {
+            console.error("人物档案字段不完整：", parsed);
+            throw new Error("AI 返回的人物档案不完整");
+        }
+
+        return profile;
+    }
+
     async function aiRandomPick() {
         const userKey = getApiKey();
-        if (!userKey) return; 
+        if (!userKey) return;
 
-        const identity = document.getElementById('identity-select').value;
-        const popularity = document.getElementById('popularity-select').value;
-        const btn = document.getElementById('random-btn');
-        
+        const identity = document.getElementById("identity-select").value;
+        const popularity = document.getElementById("popularity-select").value;
+        const btn = document.getElementById("random-btn");
+
         btn.disabled = true;
         btn.innerText = "正在让 AI 翻史书挑选人物...";
 
-        // 1. 动态决定基础范围（是否受限于中学课本）
         let scopePrompt = "";
         if (popularity === "热门" || popularity === "中等" || popularity === "不限") {
-            scopePrompt = "请在【中学语文、历史、政治课程】里出现过（不一定是课标考纲要求记住的）的中国古代人物中挑选。";
+            scopePrompt = "请优先从中学语文、历史、政治课程、常见教材、常见通俗历史内容里出现过的中国古代人物中筛选。";
         } else {
-            scopePrompt = "请在【浩瀚的中国古代正史记载】中挑选。不需要局限于中学课本，必须放开眼界去寻找。";
+            scopePrompt = "请从中国古代正史、常见史传、可靠历史记载中筛选，不必局限于中学课本，但必须保证人物真实、定位明确、资料足够支撑后续问答。";
         }
 
-        // 2. 准备初始标签池
         let allLabels = [
             "先秦（含夏商周、春秋战国）",
-            "秦汉三国",
+            "秦汉",
+            "三国",
             "两晋南北朝与五代十国",
             "隋唐",
             "两宋",
             "明清",
-            "非汉族（如匈奴、突厥、契丹、女真、蒙古、党项、吐蕃等少数民族或政权人物）"
+            "非汉族"
         ];
 
-        // 3. 按照规则精准裁剪标签池
-        // 规则A：热门 -> 移除“非汉族”
-        // 规则B：非帝王君主 + (热门或中等) -> 移除“非汉族”
-        if (popularity === '热门' || (identity === '非皇帝、君主' && (popularity === '热门' || popularity === '中等'))) {
-            allLabels = allLabels.filter(label => !label.includes("非汉族"));
+        if (popularity === "热门" || (identity === "非皇帝、君主" && (popularity === "热门" || popularity === "中等"))) {
+            allLabels = allLabels.filter(label => label !== "非汉族");
         }
 
-        // 规则C：皇帝君主 + 热门 -> 移除“两晋南北朝与五代十国”
-        if (identity === '皇帝、君主' && popularity === '热门') {
-            allLabels = allLabels.filter(label => !label.includes("两晋南北朝与五代十国"));
+        if (identity === "皇帝、君主" && popularity === "热门") {
+            allLabels = allLabels.filter(label => label !== "两晋南北朝与五代十国");
         }
 
-        // 4. 【核心改动】由代码原生随机生成最终的一个标签！
-        const randomIndex = Math.floor(Math.random() * allLabels.length);
-        const selectedLabel = allLabels[randomIndex];
+        const { selectedLabel, roll, pool } = weightedPickLabel(allLabels);
 
-        // 5. 组合最终发给AI的Prompt
-        let pickPrompt = `你现在是一个历史游戏的发牌员。${scopePrompt}
-请你必须严格同时符合以下三个条件，挑选一位具体的人物：
-1. 身份：${identity === '不限' ? '任意身份皆可' : identity}
-2. 知名度：${popularity === '不限' ? '任意可见度皆可' : popularity} （中等指课本学过但平时不常提起的；冷门指没上过课本但资深历史迷知道的；更冷门指史书里极其生僻边缘、只考查历史系研究生的级别）
-3. 历史时期/范围：必须属于【${selectedLabel}】\n\n`;
-
-        // 6. 针对性提示（只在抽中特定范围时才加入，进一步缩减无用Prompt）
-        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("先秦")) {
-            pickPrompt += `💡 提示：设定的身份包含君主且时代为先秦，请记住君王不仅包括尧舜禹、商汤、周文王，还包括春秋五霸、战国七雄的君主。\n`;
+        let extraHint = "";
+        if ((identity === "皇帝、君主" || identity === "不限") && selectedLabel.includes("先秦")) {
+            extraHint += "\n【补充提示】先秦君主不仅包括尧舜禹、商汤、周文王，也包括春秋战国各国君主。";
         }
-        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("非汉族")) {
-            pickPrompt += `💡 提示：设定的身份包含君主且在非汉族游牧范畴，可挑选单于、可汗、赞普、大汗等头衔的人物。\n`;
+        if ((identity === "皇帝、君主" || identity === "不限") && selectedLabel === "非汉族") {
+            extraHint += "\n【补充提示】非汉族政权或民族首领可包括单于、可汗、赞普、大汗等头衔人物。";
         }
 
-        // 结尾严厉限制
-        pickPrompt += `\n【极度重要】：选好后，请直接输出该人物的姓名，绝对不要输出任何标点符号、前缀、后缀、朝代或其他解释性文字。只有名字！`;
+        const pickPrompt = `
+你现在是一个中国古代历史人物猜谜游戏的“出题员”。
+
+你的任务：严格按条件挑选 1 位人物，并输出该人物的结构化资料，方便后续游戏裁判使用。
+
+【筛选条件】
+1. 身份要求：${identity === "不限" ? "任意身份皆可，但必须是真实、明确、可考的人物。" : identity}
+2. 知名度要求：${popularity === "不限" ? "不限，但人物必须真实且历史定位明确。" : popularity}
+3. 历史时期标签：${selectedLabel}
+
+【时期判断规则】
+1. 优先依据人物最主要、最典型、最被大众认知的历史活动时期。
+2. 允许跨时代人物，但必须满足以下之一：
+   - 活跃于上一个时代末期到本时代初期；
+   - 或活跃于本时代末期到下一个时代初期；
+   - 且在【${selectedLabel}】内有重要活动、身份或影响。
+3. 如果只是出生或死亡碰巧擦到边界，但主要事迹不属于【${selectedLabel}】，不要选。
+4. 如果人物归属争议明显，优先不要选。
+5. 不要为了“跨时代”而硬凑边界人物。
+
+【知名度解释】
+1. 热门：普通人普遍听过，常见于课本、影视、通俗历史内容。
+2. 中等：课本、常识或常见历史读物里出现过，但不是高频热门人物。
+3. 冷门：一般大众不熟，但历史爱好者较可能知道。
+4. 更冷门：史料中真实存在，但普通人和一般历史爱好者都较少提及。
+5. 无论冷门程度如何，都不得编造人物，不得选择史实极不清晰、真假存疑或资料过少的人物。
+
+【质量要求】
+1. 必须是真实存在。
+2. 必须适合猜人物游戏，方便后续稳定判断。
+3. 不要选史料极模糊、争议极大、难以归类的人物。
+4. 优先选择朝代、身份、经历都比较清楚的人物。
+
+【范围补充】
+${scopePrompt}
+${extraHint}
+
+【输出要求】
+只输出合法 JSON，不要输出任何解释，不要加代码块。
+
+JSON 格式必须严格如下：
+{
+  "name": "人物姓名",
+  "primary_period": "该人物最主要的时期标签，只能从以下标签中选一个：先秦（含夏商周、春秋战国）、秦汉、三国、两晋南北朝与五代十国、隋唐、两宋、明清、非汉族",
+  "acceptable_periods": ["可接受的时期标签数组，必须包含 primary_period，也可以包含因跨时代而可接受的相邻标签"],
+  "is_ruler": true,
+  "major_identities": ["身份1", "身份2"],
+  "ethnicity_bucket": "汉族政权人物 或 非汉族政权人物",
+  "birth_year": 0,
+  "death_year": 0,
+  "one_line_summary": "一句最稳定的人物定位"
+}
+`;
 
         try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${userKey}` 
-                },
-                body: JSON.stringify({
-                    model: MODEL_NAME,
-                    messages: [{ role: "user", content: pickPrompt }],
-                    temperature: 0.8 // 稍微调低一点温度，因为限定条件极其具体了
-                })
-            });
+            const profile = await fetchCharacterProfile(pickPrompt, userKey, 0.4);
+            targetProfile = profile;
+            targetCharacter = profile.name;
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
-            
-            let aiGeneratedName = data.choices[0].message.content.trim();
-            aiGeneratedName = aiGeneratedName.replace(/[。！!.,\s]/g, ''); 
-
-            if(!aiGeneratedName) throw new Error("AI未能成功返回名字");
-
-            targetCharacter = aiGeneratedName;
-            
             startGame();
-            console.log(`[开发日志] 代码抽中的时代标签是: 【${selectedLabel}】`);
-            console.log(`[开发日志] AI最终交卷的人物是:`, targetCharacter);
+
+            console.log("[开发日志] Roll 点:", roll.toFixed(4));
+            console.log("[开发日志] 权重池:", pool);
+            console.log("[开发日志] 选中的标签:", selectedLabel);
+            console.log("[开发日志] 人物档案:", targetProfile);
 
         } catch (error) {
-            alert("召唤AI失败，请检查API Key是否正确，或检查网络。");
+            alert("召唤 AI 失败，请检查 API Key 是否正确，或检查网络。");
             console.error(error);
         } finally {
             btn.disabled = false;
@@ -292,53 +633,216 @@
         }
     }
 
-    function toggleCustomPick() {
-        document.getElementById('custom-pick-area').classList.toggle('hidden');
+    async function customPick() {
+        const name = document.getElementById("custom-name").value.trim();
+        if (!name) {
+            alert("请输入人物名字！");
+            return;
+        }
+
+        const userKey = getApiKey();
+        if (!userKey) return;
+
+        const customBtn = document.getElementById("custom-confirm-btn");
+        customBtn.disabled = true;
+        customBtn.innerText = "正在分析人物档案...";
+
+        const prompt = `
+你现在要为一个中国古代历史人物猜谜游戏生成固定人物档案。
+
+目标人物：${name}
+
+要求：
+1. 必须基于主流历史认知和较稳定的常见口径。
+2. 如果此人是虚构人物、近现代人物、外国人物，或无法确认是中国古代真实人物，请仍然输出合法 JSON，但把 name 原样保留，并尽量给出最合理字段；不过应优先按真实中国古代人物理解。
+3. 如果此人跨时代，请把最主要时期写入 primary_period，并把可接受的相邻时期写入 acceptable_periods。
+4. “acceptable_periods” 只能填写以下标签中的一个或多个：
+   - 先秦（含夏商周、春秋战国）
+   - 秦汉
+   - 三国
+   - 两晋南北朝与五代十国
+   - 隋唐
+   - 两宋
+   - 明清
+   - 非汉族
+5. 如果此人为非汉族政权、民族首领、草原帝国、契丹、女真、蒙古、匈奴、突厥、吐蕃等体系中的关键人物，可把“非汉族”列入 acceptable_periods，必要时也可列为 primary_period。
+6. 只输出合法 JSON，不要加解释，不要加代码块。
+
+JSON 格式严格如下：
+{
+  "name": "人物姓名",
+  "primary_period": "主时期标签",
+  "acceptable_periods": ["可接受时期标签1", "可接受时期标签2"],
+  "is_ruler": true,
+  "major_identities": ["身份1", "身份2"],
+  "ethnicity_bucket": "汉族政权人物 或 非汉族政权人物",
+  "birth_year": 0,
+  "death_year": 0,
+  "one_line_summary": "一句最稳定的人物定位"
+}
+`;
+
+        try {
+            const profile = await fetchCharacterProfile(prompt, userKey, 0);
+            targetProfile = profile;
+            targetCharacter = profile.name;
+            startGame();
+            console.log("[开发日志] 自定义人物档案:", targetProfile);
+        } catch (error) {
+            alert("分析人物档案失败，请检查网络或 API Key。");
+            console.error(error);
+        } finally {
+            customBtn.disabled = false;
+            customBtn.innerText = "确定设定";
+        }
     }
 
-    function customPick() {
-        const name = document.getElementById('custom-name').value.trim();
-        if(!name) { alert("请输入人物名字！"); return; }
-        targetCharacter = name;
-        startGame();
+    function detectPeriodQuestion(question) {
+        const q = question.trim();
+        for (const item of dynastyQuestionMap) {
+            for (const kw of item.keywords) {
+                if (q.includes(kw)) {
+                    return item.label;
+                }
+            }
+        }
+        return null;
     }
 
-    function startGame() {
-        isGameOver = false;
-        document.getElementById('setup-section').classList.add('hidden');
-        document.getElementById('api-key-section').classList.add('hidden'); 
-        document.getElementById('game-section').classList.remove('hidden');
-        document.getElementById('chat-box').innerHTML = "";
-        addMessage("sys", "游戏开始！AI已将人物藏在心中。你可以开始提问了。");
+    function answerPeriodQuestionLocally(question) {
+        if (!targetProfile) return null;
+
+        const detectedLabel = detectPeriodQuestion(question);
+        if (!detectedLabel) return null;
+
+        const primary = targetProfile.primary_period;
+        const acceptable = targetProfile.acceptable_periods || [];
+
+        if (primary === detectedLabel) return "是";
+        if (acceptable.includes(detectedLabel)) return "是也不是";
+        return "不是";
     }
 
-    function addMessage(type, text) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${type}`;
-        msgDiv.innerText = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+    function answerRulerQuestionLocally(question) {
+        if (!targetProfile) return null;
+
+        const q = question.trim();
+        const asksRuler =
+            q.includes("皇帝") ||
+            q.includes("君主") ||
+            q.includes("帝王") ||
+            q.includes("国君") ||
+            q.includes("君王");
+
+        if (!asksRuler) return null;
+
+        return targetProfile.is_ruler ? "是" : "不是";
+    }
+
+    function answerEthnicityQuestionLocally(question) {
+        if (!targetProfile) return null;
+
+        const q = question.trim();
+        const asksNonHan =
+            q.includes("少数民族") ||
+            q.includes("非汉族") ||
+            q.includes("匈奴") ||
+            q.includes("突厥") ||
+            q.includes("契丹") ||
+            q.includes("女真") ||
+            q.includes("蒙古") ||
+            q.includes("党项") ||
+            q.includes("吐蕃");
+
+        if (!asksNonHan) return null;
+
+        if (targetProfile.ethnicity_bucket === "非汉族政权人物") {
+            return "是";
+        }
+
+        if ((targetProfile.acceptable_periods || []).includes("非汉族")) {
+            return "是也不是";
+        }
+
+        return "不是";
+    }
+
+    function answerIdentityQuestionLocally(question) {
+        if (!targetProfile) return null;
+
+        const q = question.trim();
+        const identities = targetProfile.major_identities || [];
+
+        const checks = [
+            { keywords: ["诗人"], matchers: ["诗人"] },
+            { keywords: ["词人"], matchers: ["词人"] },
+            { keywords: ["文学家", "文人"], matchers: ["文学家", "文人", "诗人", "词人", "作家"] },
+            { keywords: ["书法家"], matchers: ["书法家"] },
+            { keywords: ["画家"], matchers: ["画家"] },
+            { keywords: ["史学家"], matchers: ["史学家"] },
+            { keywords: ["哲学家"], matchers: ["哲学家", "思想家"] },
+            { keywords: ["思想家"], matchers: ["思想家", "哲学家"] },
+            { keywords: ["政治家"], matchers: ["政治家", "大臣", "宰相", "丞相", "官员"] },
+            { keywords: ["军事家"], matchers: ["军事家", "将领", "名将", "统帅", "军阀"] },
+            { keywords: ["将军", "武将", "名将"], matchers: ["将领", "名将", "军事家", "武将", "统帅"] },
+            { keywords: ["宰相", "丞相"], matchers: ["宰相", "丞相"] },
+            { keywords: ["皇后"], matchers: ["皇后"] },
+            { keywords: ["太后"], matchers: ["太后"] }
+        ];
+
+        for (const item of checks) {
+            const asksThis = item.keywords.some(k => q.includes(k));
+            if (!asksThis) continue;
+
+            const hit = identities.some(identity =>
+                item.matchers.some(m => identity.includes(m))
+            );
+
+            return hit ? "是" : "不是";
+        }
+
+        return null;
     }
 
     async function askQuestion() {
-        if(isGameOver) return;
-        const input = document.getElementById('question-input');
+        if (isGameOver) return;
+
+        const input = document.getElementById("question-input");
         const question = input.value.trim();
-        if(!question) return;
+        if (!question) return;
 
         addMessage("user", "问: " + question);
         input.value = "";
-        
-        const askBtn = document.getElementById('ask-btn');
+
+        const askBtn = document.getElementById("ask-btn");
         askBtn.disabled = true;
         askBtn.innerText = "思考中...";
 
         try {
-            const answer = await callLLMForAnswer(question);
+            const normalized = normalizeQuestion(question);
+
+            if (qaMemory.has(normalized)) {
+                const cachedAnswer = qaMemory.get(normalized);
+                addMessage("ai", "答: " + cachedAnswer);
+                askBtn.disabled = false;
+                askBtn.innerText = "提问";
+                return;
+            }
+
+            let answer = null;
+
+            answer = answerPeriodQuestionLocally(question);
+            if (!answer) answer = answerRulerQuestionLocally(question);
+            if (!answer) answer = answerEthnicityQuestionLocally(question);
+            if (!answer) answer = answerIdentityQuestionLocally(question);
+            if (!answer) answer = await callLLMForAnswer(question);
+
+            qaMemory.set(normalized, answer);
+            pushHistory(question, answer);
             addMessage("ai", "答: " + answer);
+
         } catch (error) {
-            addMessage("sys", "请求大模型失败，请检查网络或Key余额。");
+            addMessage("sys", "请求大模型失败，请检查网络或 Key 余额。");
             console.error(error);
         }
 
@@ -348,21 +852,82 @@
 
     async function callLLMForAnswer(question) {
         const userKey = getApiKey();
-        if (!userKey) throw new Error("未填写API Key");
+        if (!userKey) throw new Error("未填写 API Key");
 
-        const systemPrompt = `你现在是一个“猜人物”游戏的裁判。
-当前设定的中国古代人物是：【${targetCharacter}】。
-玩家会向你提出关于这个人物的问题。你需要根据历史事实进行判断。
-你的回答受到极严格的限制，你只能且必须输出以下三个词组中的一个，绝不能包含任何多余的标点符号或文字：
-- 如果玩家说的符合事实，输出：是
-- 如果玩家说的不符合事实，输出：不是
-- 如果玩家说的部分符合，或者历史上有争议，输出：是也不是`;
+        const consistencyContext = buildConsistencyContext();
+
+        const systemPrompt = `
+你现在是一个中国古代人物猜谜游戏的历史裁判。
+
+当前人物固定档案如下：
+姓名：${targetProfile?.name || targetCharacter}
+主时期标签：${targetProfile?.primary_period || "未知"}
+可接受时期标签：${(targetProfile?.acceptable_periods || []).join("、") || "无"}
+是否君主：${targetProfile?.is_ruler ? "是" : "不是"}
+主要身份：${(targetProfile?.major_identities || []).join("、") || "无"}
+族群/政权归类：${targetProfile?.ethnicity_bucket || "未知"}
+生年：${targetProfile?.birth_year ?? "未知"}
+卒年：${targetProfile?.death_year ?? "未知"}
+一句定位：${targetProfile?.one_line_summary || "无"}
+
+你的任务是：优先依据这份固定档案，并结合主流历史常识，判断玩家提出的话对于该人物是否成立。
+
+【你的回答只能是以下三个词之一】
+- 是
+- 不是
+- 是也不是
+
+绝对不要输出第四种说法，绝对不要输出解释，绝对不要输出标点符号。
+
+【总判断原则】
+1. 若问题与固定档案直接相关，优先以固定档案为准，不要随意推翻。
+2. 若问题超出固定档案范围，再结合主流历史认知判断。
+3. 对同一个人物、同一类问题，必须尽量保持前后一致。
+4. 若玩家连续两次问的是同一个意思的问题，即使换了说法，也应尽量给出一致答案。
+5. 优先按人物最主要、最常见、最公认的身份、时代、事迹来判断。
+6. 不要进行无根据联想，不要为了显得聪明而过度推理。
+
+【三个答案的严格定义】
+1. 输出“是”：
+   - 玩家说法在主流历史认知下基本成立；
+   - 或虽然不够最严谨，但按一般常识应算成立；
+   - 或该说法抓住了人物最主要特征。
+
+2. 输出“不是”：
+   - 玩家说法与主流历史事实明显不符；
+   - 或方向性错误；
+   - 或会对普通玩家形成明显误导。
+
+3. 输出“是也不是”：
+   - 只对一部分，不完整；
+   - 取决于不同口径；
+   - 人物处于朝代交替、身份多重、评价复杂、史学有争议；
+   - 问法过宽、过模糊、过口语化，不能简单判成全对或全错。
+
+【细化规则】
+1. 朝代问题：优先按人物主要活跃时期和通常归属判断。横跨两个时代且两边都有重要活动时，可答“是也不是”。
+2. 身份问题：若玩家问到其中一个真实且重要的身份，可答“是”；若仅部分覆盖，可答“是也不是”。
+3. 评价类问题：如忠臣、奸臣、明君、昏君等，若历史争议明显，优先答“是也不是”。
+4. 宽泛描述：如“很有名”“很厉害”“算文人吗”，若常识下明显成立可答“是”；若标准不一则答“是也不是”。
+
+【此前判定记录】
+${consistencyContext}
+
+【禁止事项】
+1. 不要补充解释。
+2. 不要输出分析过程。
+3. 不要输出“可能”“大概”“视情况而定”等额外词语。
+4. 不要输出标点。
+5. 不要为了迎合玩家而放弃历史事实。
+
+现在开始裁判。你只能输出：是、不是、是也不是。
+`;
 
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${userKey}` 
+                "Authorization": `Bearer ${userKey}`
             },
             body: JSON.stringify({
                 model: MODEL_NAME,
@@ -370,18 +935,22 @@
                     { role: "system", content: systemPrompt },
                     { role: "user", content: question }
                 ],
-                temperature: 0.1
+                temperature: 0
             })
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         let reply = data.choices[0].message.content.trim();
-        
-        reply = reply.replace(/[。！!.,]/g, ''); 
-        if(!["是", "不是", "是也不是"].includes(reply)) {
-            if(reply.includes("是也不是")) return "是也不是";
-            if(reply.includes("不是")) return "不是";
-            if(reply.includes("是")) return "是";
+        reply = reply.replace(/[。！!.,，、；;：:\s]/g, "");
+
+        if (!["是", "不是", "是也不是"].includes(reply)) {
+            if (reply.includes("是也不是")) return "是也不是";
+            if (reply.includes("不是")) return "不是";
+            if (reply.includes("是")) return "是";
             return "是也不是";
         }
 
@@ -389,15 +958,18 @@
     }
 
     function makeGuess() {
-        if(isGameOver) return;
-        const guessInput = document.getElementById('guess-input');
-        const guess = guessInput.value.trim();
-        if(!guess) return;
+        if (isGameOver) return;
 
-        addMessage("user", "我猜他是：" + guess);
+        const guessInput = document.getElementById("guess-input");
+        const guess = normalizeName(guessInput.value.trim());
+        if (!guess) return;
+
+        addMessage("user", "我猜他是：" + guessInput.value.trim());
         guessInput.value = "";
 
-        if(guess.includes(targetCharacter) || targetCharacter.includes(guess)) {
+        const target = normalizeName(targetCharacter);
+
+        if (guess === target || guess.includes(target) || target.includes(guess)) {
             addMessage("sys", `🎉 恭喜你猜对了！正确答案就是【${targetCharacter}】！`);
             endGame();
         } else {
@@ -406,28 +978,29 @@
     }
 
     function revealAnswer() {
-        if(isGameOver) return;
+        if (isGameOver) return;
         addMessage("sys", `游戏结束。正确答案是【${targetCharacter}】。`);
         endGame();
     }
 
-    function endGame() {
-        isGameOver = true;
-        document.getElementById('ask-btn').disabled = true;
-        document.getElementById('guess-btn').disabled = true;
-        document.getElementById('game-status').innerText = "游戏结束，请刷新页面重新开始。";
-    }
-
     document.getElementById("question-input").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
-            event.preventDefault(); 
+            event.preventDefault();
             askQuestion();
         }
     });
+
     document.getElementById("guess-input").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
             makeGuess();
+        }
+    });
+
+    document.getElementById("custom-name").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            customPick();
         }
     });
 </script>
