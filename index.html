@@ -123,11 +123,11 @@
                 <div>
                     <label style="font-size: 14px;">知名度：</label>
                     <select id="popularity-select">
-                        <option value="不限">不限</option>
-                        <option value="热门">热门</option>
-                        <option value="中等">中等</option>
-                        <option value="冷门">冷门</option>
-                        <option value="更冷门">骨灰级冷门</option>
+                        <option value="不限">不限 (随机)</option>
+                        <option value="热门">热门 (妇孺皆知)</option>
+                        <option value="中等">中等 (课本学过)</option>
+                        <option value="冷门">冷门 (历史迷才知)</option>
+                        <option value="更冷门">骨灰级冷门 (考研究生)</option>
                     </select>
                 </div>
             </div>
@@ -210,22 +210,18 @@
             scopePrompt = "请在【浩瀚的中国古代正史记载】中挑选。不需要局限于中学课本，必须放开眼界去寻找。";
         }
 
-        let pickPrompt = `你现在是一个历史游戏的发牌员。${scopePrompt}
-要求严格符合以下两个条件：
-1. 身份：${identity === '不限' ? '任意身份皆可' : identity}
-2. 知名度：${popularity === '不限' ? '任意知名度皆可' : popularity} （中等指课本学过但平时不常提起的；冷门指没上过课本但资深历史迷知道的；更冷门指史书里极其生僻边缘、只考查历史系研究生的级别）\n\n`;
-
-        // 2. 动态生成标签池（根据用户要求的限制规则）
+        // 2. 准备初始标签池
         let allLabels = [
             "先秦（含夏商周、春秋战国）",
             "秦汉三国",
-            "两晋南北朝与五代十国（大分裂时期）",
+            "两晋南北朝与五代十国",
             "隋唐",
             "两宋",
             "明清",
             "非汉族（如匈奴、突厥、契丹、女真、蒙古、党项、吐蕃等少数民族或政权人物）"
         ];
 
+        // 3. 按照规则精准裁剪标签池
         // 规则A：热门 -> 移除“非汉族”
         // 规则B：非帝王君主 + (热门或中等) -> 移除“非汉族”
         if (popularity === '热门' || (identity === '非皇帝、君主' && (popularity === '热门' || popularity === '中等'))) {
@@ -237,19 +233,27 @@
             allLabels = allLabels.filter(label => !label.includes("两晋南北朝与五代十国"));
         }
 
-        // 将最终的标签池拼接成文字
-        let labelsString = allLabels.map((l, i) => `标签${i+1}：${l}`).join("\n");
+        // 4. 【核心改动】由代码原生随机生成最终的一个标签！
+        const randomIndex = Math.floor(Math.random() * allLabels.length);
+        const selectedLabel = allLabels[randomIndex];
 
-        // 3. 核心大轮盘要求
-        pickPrompt += `⚠️【核心要求】：为了防止每次都选到重复的人，保证游戏的多样性，不论上述条件是什么，请你务必先在心里掷骰子，从以下 ${allLabels.length} 个标签中真正随机选定1个标签，然后再**仅从该被选中的标签中**挑选一位符合上述【身份】和【知名度】条件的人物：\n${labelsString}\n`;
+        // 5. 组合最终发给AI的Prompt
+        let pickPrompt = `你现在是一个历史游戏的发牌员。${scopePrompt}
+请你必须严格同时符合以下三个条件，挑选一位具体的人物：
+1. 身份：${identity === '不限' ? '任意身份皆可' : identity}
+2. 知名度：${popularity === '不限' ? '任意可见度皆可' : popularity} （中等指课本学过但平时不常提起的；冷门指没上过课本但资深历史迷知道的；更冷门指史书里极其生僻边缘、只考查历史系研究生的级别）
+3. 历史时期/范围：必须属于【${selectedLabel}】\n\n`;
 
-        // 4. 针对君主类的特殊提示，开拓 AI 思路
-        if (identity === '皇帝、君主' || identity === '不限') {
-            pickPrompt += `\n💡 提示：如果你的身份条件包含君主，且抽到了“先秦”标签，请记住先秦君王不仅包括尧舜禹、商汤、周文王，还包括春秋战国的君主；如果池子里有“非汉族”且你抽到了它，可挑选单于、可汗、赞普、大汗等。\n`;
+        // 6. 针对性提示（只在抽中特定范围时才加入，进一步缩减无用Prompt）
+        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("先秦")) {
+            pickPrompt += `💡 提示：设定的身份包含君主且时代为先秦，请记住君王不仅包括尧舜禹、商汤、周文王，还包括春秋五霸、战国七雄的君主。\n`;
+        }
+        if ((identity === '皇帝、君主' || identity === '不限') && selectedLabel.includes("非汉族")) {
+            pickPrompt += `💡 提示：设定的身份包含君主且在非汉族游牧范畴，可挑选单于、可汗、赞普、大汗等头衔的人物。\n`;
         }
 
         // 结尾严厉限制
-        pickPrompt += `\n【极度重要】：选好后，请直接输出该人物的姓名，绝对不要输出任何标点符号、前缀、后缀、你抽中了哪个标签或其他解释性文字。只有名字！`;
+        pickPrompt += `\n【极度重要】：选好后，请直接输出该人物的姓名，绝对不要输出任何标点符号、前缀、后缀、朝代或其他解释性文字。只有名字！`;
 
         try {
             const response = await fetch(API_URL, {
@@ -261,7 +265,7 @@
                 body: JSON.stringify({
                     model: MODEL_NAME,
                     messages: [{ role: "user", content: pickPrompt }],
-                    temperature: 0.9 
+                    temperature: 0.8 // 稍微调低一点温度，因为限定条件极其具体了
                 })
             });
 
@@ -276,8 +280,8 @@
             targetCharacter = aiGeneratedName;
             
             startGame();
-            console.log(`[系统日志👀] 动态标签数量:`, allLabels.length);
-            console.log(`[系统日志👀] AI选出的人物是:`, targetCharacter);
+            console.log(`[开发日志] 代码抽中的时代标签是: 【${selectedLabel}】`);
+            console.log(`[开发日志] AI最终交卷的人物是:`, targetCharacter);
 
         } catch (error) {
             alert("召唤AI失败，请检查API Key是否正确，或检查网络。");
